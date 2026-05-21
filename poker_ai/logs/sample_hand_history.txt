@@ -1,0 +1,15 @@
+PokerStars Hand #1
+*** HOLE CARDS ***
+Alice: raises 30
+Bob: calls 30
+*** FLOP *** [Ah 7d 2c]
+Alice: bets 40
+Bob: folds
+Alice collected 100 from pot
+
+PokerStars Hand #2
+*** HOLE CARDS ***
+Alice: calls 10
+Bob: raises 40
+Alice: folds
+Bob collected 60 from pot

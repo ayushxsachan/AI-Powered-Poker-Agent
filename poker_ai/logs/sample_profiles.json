@@ -1,0 +1,31 @@
+{
+  "players": {
+    "Alice": {
+      "hands": 2,
+      "vpip": 2,
+      "pfr": 1,
+      "aggressive_actions": 2,
+      "passive_actions": 1,
+      "bluff_attempts": 0,
+      "bluff_successes": 0,
+      "fold_to_raise_opportunities": 1,
+      "folds_to_raise": 1,
+      "showdowns": 1,
+      "wins": 1
+    },
+    "Bob": {
+      "hands": 2,
+      "vpip": 2,
+      "pfr": 1,
+      "aggressive_actions": 1,
+      "passive_actions": 1,
+      "bluff_attempts": 0,
+      "bluff_successes": 0,
+      "fold_to_raise_opportunities": 1,
+      "folds_to_raise": 1,
+      "showdowns": 1,
+      "wins": 1
+    }
+  },
+  "note": "Post-session/practice profiles. Do not use for live assistance on third-party poker sites."
+}
