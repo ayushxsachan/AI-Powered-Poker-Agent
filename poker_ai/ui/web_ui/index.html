@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poker AI</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #10271f;
+      color: #f5f7f2;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(120deg, rgba(11, 55, 44, 0.94), rgba(38, 79, 62, 0.92)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03) 1px, transparent 1px, transparent 64px);
+    }
+    main {
+      width: min(980px, calc(100vw - 32px));
+    }
+    h2 {
+      margin: 30px 0 12px;
+      font-size: 22px;
+    }
+    .table {
+      min-height: 540px;
+      border: 6px solid #c7a449;
+      border-radius: 50%;
+      background: #16734f;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.25), 0 24px 80px rgba(0,0,0,0.35);
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      align-items: center;
+      padding: 40px 80px;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .seat {
+      text-align: center;
+      line-height: 1.5;
+    }
+    .cards {
+      font-size: 28px;
+      letter-spacing: 0;
+      min-height: 42px;
+    }
+    .pot {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      background: #f2f0df;
+      color: #16211c;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .actions {
+      margin-top: 22px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .summary {
+      margin-top: 14px;
+      text-align: center;
+      min-height: 28px;
+    }
+    .coach {
+      margin-top: 24px;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.18);
+    }
+    .coach form {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: #dbe6dc;
+    }
+    input, select {
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 6px;
+      padding: 10px;
+      background: rgba(13, 24, 20, 0.95);
+      color: #f5f7f2;
+    }
+    .coach button {
+      align-self: end;
+    }
+    .wide {
+      grid-column: span 2;
+    }
+    .checkline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+    }
+    .checkline input {
+      width: 18px;
+      height: 18px;
+    }
+    .dashboard {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0,0,0,0.22);
+      min-height: 74px;
+    }
+    .metric span {
+      display: block;
+      color: #cbd9ce;
+      font-size: 12px;
+    }
+    .metric strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 22px;
+    }
+    .tier-strong {
+      border-color: #53d66b;
+      background: rgba(28, 122, 58, 0.35);
+    }
+    .tier-good {
+      border-color: #80c7ff;
+      background: rgba(29, 83, 130, 0.35);
+    }
+    .tier-caution {
+      border-color: #f0c95b;
+      background: rgba(132, 97, 20, 0.34);
+    }
+    .tier-fold {
+      border-color: #ff8585;
+      background: rgba(128, 34, 34, 0.34);
+    }
+    .visuals {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .panel {
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(0,0,0,0.2);
+    }
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .barline {
+      display: grid;
+      grid-template-columns: minmax(80px, 140px) 1fr 54px;
+      gap: 10px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      overflow: hidden;
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: #80c7ff;
+    }
+    .profile-list {
+      display: grid;
+      gap: 8px;
+    }
+    .profile {
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255,255,255,0.06);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      box-sizing: border-box;
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(13, 24, 20, 0.95);
+      color: #f5f7f2;
+      resize: vertical;
+      font: inherit;
+      line-height: 1.4;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin: 14px 0 0;
+      color: #eef6e9;
+      line-height: 1.5;
+    }
+    @media (max-width: 760px) {
+      .table {
+        min-height: 430px;
+        padding: 30px 24px;
+        border-radius: 18px;
+      }
+      .coach form {
+        grid-template-columns: 1fr;
+      }
+      .wide {
+        grid-column: span 1;
+      }
+      .dashboard, .visuals {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="table">
+      <div class="seat" id="villain"></div>
+      <div>
+        <div class="row pot" id="pot"></div>
+        <div class="row cards" id="board"></div>
+      </div>
+      <div class="seat" id="hero"></div>
+    </section>
+    <div class="actions" id="actions"></div>
+    <div class="summary" id="summary"></div>
+    <section class="coach">
+      <h2>Practice Coach</h2>
+      <form id="coach-form">
+        <label>Hero cards
+          <input id="coach-hero" value="As Ks" autocomplete="off">
+        </label>
+        <label>Board
+          <input id="coach-board" value="" placeholder="Ah 7d 2c">
+        </label>
+        <label>Opponents
+          <input id="coach-opponents" type="number" min="1" max="8" value="1">
+        </label>
+        <label class="wide">Opponent names
+          <input id="coach-opponent-names" value="" placeholder="Alice, Bob">
+        </label>
+        <label>Position
+          <select id="coach-position">
+            <option value="unknown">unknown</option>
+            <option value="utg">UTG</option>
+            <option value="mp">MP</option>
+            <option value="co">CO</option>
+            <option value="btn">BTN</option>
+            <option value="sb">SB</option>
+            <option value="bb">BB</option>
+          </select>
+        </label>
+        <label>Pot
+          <input id="coach-pot" type="number" min="0" value="100">
+        </label>
+        <label>Call amount
+          <input id="coach-call" type="number" min="0" value="25">
+        </label>
+        <label>Action
+          <select id="coach-action">
+            <option value="">none</option>
+            <option value="fold">fold</option>
+            <option value="check">check</option>
+            <option value="call">call</option>
+            <option value="small_raise">small raise</option>
+            <option value="medium_raise">medium raise</option>
+            <option value="large_raise">large raise</option>
+            <option value="all_in">all in</option>
+          </select>
+        </label>
+        <label>Simulations
+          <input id="coach-sims" type="number" min="100" max="100000" value="5000">
+        </label>
+        <label>Hero stack
+          <input id="coach-hero-stack" type="number" min="0" value="1000">
+        </label>
+        <label>Effective stack
+          <input id="coach-effective-stack" type="number" min="0" value="1000">
+        </label>
+        <label>Big blind
+          <input id="coach-big-blind" type="number" min="1" value="10">
+        </label>
+        <label class="checkline">
+          <input id="coach-facing-raise" type="checkbox">
+          Facing raise
+        </label>
+        <button type="submit">Analyze</button>
+      </form>
+      <div class="dashboard" id="coach-dashboard"></div>
+      <div class="visuals">
+        <div class="panel">
+          <h3>Outcome Odds</h3>
+          <div id="odds-bars"></div>
+        </div>
+        <div class="panel">
+          <h3>Hand Distribution</h3>
+          <div id="hand-bars"></div>
+        </div>
+        <div class="panel">
+          <h3>Opponent Profiles</h3>
+          <div class="profile-list" id="profile-list">No saved profiles loaded.</div>
+        </div>
+        <div class="panel">
+          <h3>Coach Notes</h3>
+          <pre id="coach-output">Enter a replay or practice spot to estimate equity, EV, and pot odds.</pre>
+        </div>
+      </div>
+    </section>
+    <section class="coach">
+      <h2>Import Hand History</h2>
+      <textarea id="history-text" placeholder="Paste exported hand-history text here after a session."></textarea>
+      <div class="actions">
+        <button id="import-history" type="button">Learn Profiles</button>
+        <button id="replace-history" type="button">Replace Profiles</button>
+      </div>
+      <pre id="history-output">Paste exported hands here to update VPIP, PFR, aggression, bluff estimates, and fold-to-raise profiles.</pre>
+    </section>
+  </main>
+  <script>
+    const actions = ["fold", "check", "call", "small_raise", "medium_raise", "large_raise", "all_in"];
+    let roomId = new URLSearchParams(location.search).get("room") || "demo";
+    let socket = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/${roomId}`);
+
+    socket.onmessage = event => render(JSON.parse(event.data));
+    document.getElementById("coach-form").addEventListener("submit", analyzeSpot);
+    document.getElementById("import-history").addEventListener("click", () => importHistory(false));
+    document.getElementById("replace-history").addEventListener("click", () => importHistory(true));
+    loadProfiles();
+
+    function render(state) {
+      const hero = state.players[0];
+      const villain = state.players[1];
+      document.getElementById("pot").textContent = `Pot ${state.pot} | ${state.phase}`;
+      document.getElementById("board").textContent = state.community_cards.join(" ") || "-";
+      document.getElementById("hero").innerHTML = `<div class="cards">${hero.hole_cards.join(" ") || "your cards"}</div><div>${hero.name} stack=${hero.stack} bet=${hero.current_bet}</div>`;
+      document.getElementById("villain").innerHTML = `<div class="cards">${state.phase === "hand_over" ? villain.hole_cards.join(" ") : "?? ??"}</div><div>${villain.name} stack=${villain.stack} bet=${villain.current_bet}</div>`;
+      document.getElementById("summary").textContent = state.last_result ? state.last_result.summary : "";
+
+      const legal = new Set(state.legal_actions || []);
+      const container = document.getElementById("actions");
+      container.innerHTML = "";
+      if (state.phase === "hand_over") {
+        const next = document.createElement("button");
+        next.textContent = "New hand";
+        next.onclick = () => socket.send(JSON.stringify({ command: "new_hand" }));
+        container.appendChild(next);
+        return;
+      }
+      actions.forEach(action => {
+        const button = document.createElement("button");
+        button.textContent = action.replace("_", " ");
+        button.disabled = !legal.has(action);
+        button.onclick = () => socket.send(JSON.stringify({ action }));
+        container.appendChild(button);
+      });
+    }
+
+    function splitCards(value) {
+      return value.split(/[,\s]+/).map(card => card.trim()).filter(Boolean);
+    }
+
+    async function analyzeSpot(event) {
+      event.preventDefault();
+      const output = document.getElementById("coach-output");
+      output.textContent = "Analyzing...";
+      try {
+        const response = await fetch("/coach/equity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            hero_cards: splitCards(document.getElementById("coach-hero").value),
+            board_cards: splitCards(document.getElementById("coach-board").value),
+            opponent_count: Number(document.getElementById("coach-opponents").value),
+            pot: Number(document.getElementById("coach-pot").value),
+            call_amount: Number(document.getElementById("coach-call").value),
+            action: document.getElementById("coach-action").value || null,
+            simulations: Number(document.getElementById("coach-sims").value),
+            opponent_names: splitNames(document.getElementById("coach-opponent-names").value),
+            position: document.getElementById("coach-position").value,
+            hero_stack: optionalNumber("coach-hero-stack"),
+            effective_stack: optionalNumber("coach-effective-stack"),
+            big_blind: Number(document.getElementById("coach-big-blind").value),
+            facing_raise: document.getElementById("coach-facing-raise").checked
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          output.textContent = JSON.stringify(data, null, 2);
+          return;
+        }
+        renderCoach(data);
+      } catch (error) {
+        output.textContent = String(error);
+      }
+    }
+
+    function optionalNumber(id) {
+      const value = document.getElementById(id).value;
+      return value === "" ? null : Number(value);
+    }
+
+    function splitNames(value) {
+      return value.split(",").map(name => name.trim()).filter(Boolean);
+    }
+
+    function pct(value) {
+      return value == null ? "n/a" : `${(value * 100).toFixed(1)}%`;
+    }
+
+    function chips(value) {
+      if (value == null) return "n/a";
+      return `${value >= 0 ? "+" : ""}${value.toFixed(1)}`;
+    }
+
+    function renderCoach(data) {
+      const tier = data.recommendation_tier || "caution";
+      document.getElementById("coach-dashboard").innerHTML = [
+        metric("Recommendation", data.recommendation, `tier-${tier}`),
+        metric("Equity", pct(data.equity.equity)),
+        metric("Pot Odds", pct(data.pot_odds)),
+        metric("Call EV", chips(data.expected_value)),
+        metric("Stack Depth", data.stack_depth_bb == null ? "n/a" : `${data.stack_depth_bb.toFixed(1)} BB`),
+        metric("Position", data.position || "unknown"),
+        metric("Preflop", data.preflop_advice ? `${data.preflop_advice.hand_code}: ${data.preflop_advice.recommendation}` : "postflop spot"),
+        metric("Simulations", String(data.equity.simulations))
+      ].join("");
+
+      renderBars("odds-bars", [
+        ["Win", data.equity.win_probability, "#53d66b"],
+        ["Tie", data.equity.tie_probability, "#f0c95b"],
+        ["Loss", data.equity.loss_probability, "#ff8585"]
+      ]);
+      renderBars(
+        "hand-bars",
+        Object.entries(data.equity.hand_distribution || {}).map(([name, value]) => [name, value, "#80c7ff"])
+      );
+      renderRanges(data.opponent_ranges || {});
+      document.getElementById("coach-output").textContent = [
+        ...data.reasoning,
+        data.preflop_advice ? `Preflop reason: ${data.preflop_advice.reason}` : "",
+        "",
+        data.safety_note
+      ].filter(Boolean).join("\n");
+    }
+
+    function metric(label, value, className = "") {
+      return `<div class="metric ${className}"><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function renderBars(id, rows) {
+      const html = rows.length ? rows.map(([label, value, color]) => {
+        const width = Math.max(0, Math.min(100, value * 100));
+        return `<div class="barline"><span>${escapeHtml(label)}</span><div class="bar"><i style="width:${width}%;background:${color}"></i></div><b>${pct(value)}</b></div>`;
+      }).join("") : "No data yet.";
+      document.getElementById(id).innerHTML = html;
+    }
+
+    function renderRanges(ranges) {
+      const entries = Object.entries(ranges);
+      document.getElementById("profile-list").innerHTML = entries.length ? entries.map(([name, range]) => {
+        const width = Math.max(0, Math.min(100, range.percentile * 100));
+        return `<div class="profile"><strong>${escapeHtml(name)}</strong><br>${escapeHtml(range.label)} range (${pct(range.percentile)})<div class="bar"><i style="width:${width}%;background:#f0c95b"></i></div>${escapeHtml(range.description)}</div>`;
+      }).join("") : "No opponent names matched saved profiles.";
+    }
+
+    async function importHistory(replace) {
+      const output = document.getElementById("history-output");
+      output.textContent = "Learning profiles...";
+      try {
+        const response = await fetch("/coach/import-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: document.getElementById("history-text").value,
+            replace
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          output.textContent = JSON.stringify(data, null, 2);
+          return;
+        }
+        output.textContent = `Imported ${data.hand_count} hands into ${data.profile_path}.`;
+        renderProfileStats(data.players || {});
+      } catch (error) {
+        output.textContent = String(error);
+      }
+    }
+
+    async function loadProfiles() {
+      try {
+        const response = await fetch("/coach/profiles");
+        const data = await response.json();
+        renderProfileStats(data.players || {});
+      } catch {
+        return;
+      }
+    }
+
+    function renderProfileStats(players) {
+      const entries = Object.entries(players);
+      document.getElementById("profile-list").innerHTML = entries.length ? entries.map(([name, stats]) => {
+        return `<div class="profile"><strong>${escapeHtml(name)}</strong><br>VPIP ${pct(stats.vpip)} | PFR ${pct(stats.pfr)} | AF ${Number(stats.aggression_factor).toFixed(2)}<br>Bluff ${pct(stats.bluff_frequency)} | Fold-to-raise ${pct(stats.fold_to_raise)}</div>`;
+      }).join("") : "No saved profiles loaded.";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
