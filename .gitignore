@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.sqlite3
+poker_ai/models/*
+!poker_ai/models/.gitkeep
+poker_ai/logs/*
+!poker_ai/logs/.gitkeep
+
